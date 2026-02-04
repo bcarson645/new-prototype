@@ -25,6 +25,9 @@
   },
   "description": "A new Next.js prototype project, separate from the main pcs-prototype.",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bcarson645/new-prototype.git"
