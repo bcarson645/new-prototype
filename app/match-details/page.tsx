@@ -43,6 +43,7 @@ function MatchDetailsContent() {
   const matchGround = searchParams.get('matchGround') || "Lord's Cricket Ground";
 
   const [activeTab, setActiveTab] = useState<'prematch' | 'live'>('prematch');
+  const [showCompetitorPrices, setShowCompetitorPrices] = useState(false);
   
   // State for INNINGS section
   const [inningsData, setInningsData] = useState({
@@ -302,6 +303,31 @@ function MatchDetailsContent() {
   
   // Selected player for bowler swap
   const [selectedBowlerForSwap, setSelectedBowlerForSwap] = useState<{ player: BowlerStats; team: string; list: 'starting' | 'subs' } | null>(null);
+
+  // Check if all players in lineups are selected
+  const areAllPlayersSelected = () => {
+    // Check home team batters
+    const homeBattersAllSelected = homeTeamStartingXI.every(
+      p => batterChecked[`${homeTeam}-starting-${p.id}`] === true
+    );
+    
+    // Check away team batters
+    const awayBattersAllSelected = awayTeamStartingXI.every(
+      p => batterChecked[`${awayTeam}-starting-${p.id}`] === true
+    );
+    
+    // Check home team bowlers
+    const homeBowlersAllSelected = homeTeamBowlerStarting.every(
+      b => bowlerChecked[`${homeTeam}-bowler-starting-${b.id}`] === true
+    );
+    
+    // Check away team bowlers
+    const awayBowlersAllSelected = awayTeamBowlerStarting.every(
+      b => bowlerChecked[`${awayTeam}-bowler-starting-${b.id}`] === true
+    );
+    
+    return homeBattersAllSelected && awayBattersAllSelected && homeBowlersAllSelected && awayBowlersAllSelected;
+  };
 
   const updatePlayerStat = (team: string, list: 'starting' | 'subs', playerId: string, field: keyof PlayerStats, value: number | string) => {
     const isHomeTeam = team === homeTeam;
@@ -588,25 +614,25 @@ function MatchDetailsContent() {
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <h3 className="text-lg font-semibold text-gray-900">{teamName}</h3>
+          <h3 className="text-base font-semibold text-gray-800">{teamName}</h3>
         </div>
 
         <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
           <table className="w-full text-sm">
-            <thead className="bg-gray-700">
+            <thead className="bg-gray-800">
               <tr>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">Pos.</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white"></th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white w-24">Player ID</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white w-48">Name</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">BT.CAZ</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">Raw</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">SR</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">4s</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">6s</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">Rating</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-white">Info</th>
-                <th className="px-2 py-2 text-center text-xs font-medium text-white w-12">✓</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">Pos.</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white"></th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white w-24">Player ID</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white w-48">Name</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">BT.CAZ</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">Raw</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">SR</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">4s</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">6s</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">Rating</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-white">Info</th>
+                <th className="px-2 py-2 text-center text-xs font-semibold text-white w-12">✓</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -643,7 +669,7 @@ function MatchDetailsContent() {
                       type="number"
                       value={player.btCaz}
                       onChange={(e) => updatePlayerStat(team, 'starting', player.id, 'btCaz', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -651,7 +677,7 @@ function MatchDetailsContent() {
                       type="number"
                       value={player.raw}
                       onChange={(e) => updatePlayerStat(team, 'starting', player.id, 'raw', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -660,7 +686,7 @@ function MatchDetailsContent() {
                       step="0.01"
                       value={player.sr}
                       onChange={(e) => updatePlayerStat(team, 'starting', player.id, 'sr', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -669,7 +695,7 @@ function MatchDetailsContent() {
                       step="0.01"
                       value={player.fours}
                       onChange={(e) => updatePlayerStat(team, 'starting', player.id, 'fours', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -678,11 +704,11 @@ function MatchDetailsContent() {
                       step="0.01"
                       value={player.sixes}
                       onChange={(e) => updatePlayerStat(team, 'starting', player.id, 'sixes', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
                       player.rating >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {player.rating > 0 ? '+' : ''}{player.rating}
@@ -730,9 +756,11 @@ function MatchDetailsContent() {
                 <td colSpan={2} className="px-2 py-3">
                   <button
                     onClick={() => {
+                      // Toggle: select all if not all selected, deselect all if all selected
+                      const allSelected = players.every(p => batterChecked[`${team}-starting-${p.id}`] === true);
                       const newChecked: Record<string, boolean> = {};
                       players.forEach(p => {
-                        newChecked[`${team}-starting-${p.id}`] = true;
+                        newChecked[`${team}-starting-${p.id}`] = !allSelected;
                       });
                       setBatterChecked(prev => ({ ...prev, ...newChecked }));
                     }}
@@ -750,11 +778,11 @@ function MatchDetailsContent() {
         </div>
 
         <div className="mb-3 mt-6">
-          <h4 className="text-sm font-semibold text-gray-700">SUBS</h4>
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">SUBS</h4>
         </div>
         <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-gray-700 border-b border-gray-600">
+            <thead className="bg-gray-800 border-b border-gray-700">
               <tr>
                 <th className="px-2 py-2 text-left text-xs font-semibold text-white">Pos.</th>
                 <th className="px-2 py-2 text-left text-xs font-semibold text-white"></th>
@@ -804,7 +832,7 @@ function MatchDetailsContent() {
                       type="number"
                       value={player.btCaz}
                       onChange={(e) => updatePlayerStat(team, 'subs', player.id, 'btCaz', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -812,7 +840,7 @@ function MatchDetailsContent() {
                       type="number"
                       value={player.raw}
                       onChange={(e) => updatePlayerStat(team, 'subs', player.id, 'raw', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -821,7 +849,7 @@ function MatchDetailsContent() {
                       step="0.01"
                       value={player.sr}
                       onChange={(e) => updatePlayerStat(team, 'subs', player.id, 'sr', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -830,7 +858,7 @@ function MatchDetailsContent() {
                       step="0.01"
                       value={player.fours}
                       onChange={(e) => updatePlayerStat(team, 'subs', player.id, 'fours', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -839,11 +867,11 @@ function MatchDetailsContent() {
                       step="0.01"
                       value={player.sixes}
                       onChange={(e) => updatePlayerStat(team, 'subs', player.id, 'sixes', parseFloat(e.target.value) || 0)}
-                      className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </td>
                   <td className="px-2 py-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
                       player.rating >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {player.rating > 0 ? '+' : ''}{player.rating}
@@ -1006,15 +1034,15 @@ function MatchDetailsContent() {
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <h3 className="text-lg font-semibold text-gray-900">{teamName}</h3>
+          <h3 className="text-base font-semibold text-gray-800">{teamName}</h3>
         </div>
 
         <div className="mb-3">
-          <h4 className="text-sm font-semibold text-gray-700">STARTING XI</h4>
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">STARTING XI</h4>
         </div>
         <div className="border border-gray-300 rounded-lg overflow-hidden mb-6 shadow-sm bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-gray-700 border-b border-gray-600">
+            <thead className="bg-gray-800 border-b border-gray-700">
               <tr>
                 <th className="px-2 py-2 text-left text-xs font-semibold text-white">Pos.</th>
                 <th className="px-2 py-2 text-left text-xs font-semibold text-white"></th>
@@ -1076,7 +1104,7 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerStarting(newBowlers);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
@@ -1094,7 +1122,7 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerStarting(newBowlers);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
@@ -1112,7 +1140,7 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerStarting(newBowlers);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
@@ -1130,11 +1158,11 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerStarting(newBowlers);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
                         bowler.rating >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
                         {bowler.rating > 0 ? '+' : ''}{bowler.rating}
@@ -1181,9 +1209,11 @@ function MatchDetailsContent() {
                 <td colSpan={2} className="px-2 py-3">
                   <button
                     onClick={() => {
+                      // Toggle: select all if not all selected, deselect all if all selected
+                      const allSelected = bowlers.every(b => bowlerChecked[`${team}-bowler-starting-${b.id}`] === true);
                       const newChecked: Record<string, boolean> = {};
                       bowlers.forEach(b => {
-                        newChecked[`${team}-bowler-starting-${b.id}`] = true;
+                        newChecked[`${team}-bowler-starting-${b.id}`] = !allSelected;
                       });
                       setBowlerChecked(prev => ({ ...prev, ...newChecked }));
                     }}
@@ -1201,11 +1231,11 @@ function MatchDetailsContent() {
         </div>
 
         <div className="mb-3 mt-6">
-          <h4 className="text-sm font-semibold text-gray-700">SUBS</h4>
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">SUBS</h4>
         </div>
         <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-gray-700 border-b border-gray-600">
+            <thead className="bg-gray-800 border-b border-gray-700">
               <tr>
                 <th className="px-2 py-2 text-left text-xs font-semibold text-white">Pos.</th>
                 <th className="px-2 py-2 text-left text-xs font-semibold text-white"></th>
@@ -1267,7 +1297,7 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerSubs(newSubs);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
@@ -1285,7 +1315,7 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerSubs(newSubs);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
@@ -1303,7 +1333,7 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerSubs(newSubs);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
@@ -1321,11 +1351,11 @@ function MatchDetailsContent() {
                             setAwayTeamBowlerSubs(newSubs);
                           }
                         }}
-                        className="w-16 px-1 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-shadow"
+                        className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                       />
                     </td>
                     <td className="px-2 py-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
                         bowler.rating >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
                         {bowler.rating > 0 ? '+' : ''}{bowler.rating}
@@ -1422,7 +1452,7 @@ function MatchDetailsContent() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>d.pavlica</span>
+                <span>b.carson</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -1452,7 +1482,7 @@ function MatchDetailsContent() {
         <div className="w-full mx-auto px-6 py-4">
           <div className="grid grid-cols-3 gap-4">
             {/* Match Overview */}
-            <div>
+            <div className="flex flex-col">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -1477,24 +1507,25 @@ function MatchDetailsContent() {
 
             {/* Innings Section */}
             <div className="flex flex-col items-center">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">INNINGS</h3>
-              <div className="border border-gray-200 rounded-lg overflow-hidden bg-white w-full max-w-lg">
+              <div className="border border-gray-200 rounded-lg overflow-hidden bg-white w-full max-w-2xl">
                 {/* Team Headers */}
-                <div className="grid grid-cols-5 gap-3 bg-gray-50 px-4 py-2 border-b border-gray-200">
+                <div className="grid grid-cols-5 gap-3 bg-gray-700 px-4 py-2 border-b border-gray-200">
                   <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
-                    <span className="text-xs font-medium text-gray-700">{homeTeam}</span>
+                    <span className="text-xs font-medium text-gray-200">{homeTeam}</span>
                   </div>
                   <div></div>
-                  <div className="text-center"></div>
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-gray-200">INNINGS</h3>
+                  </div>
                   <div></div>
                   <div className="flex items-center gap-1 justify-end">
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
-                    <span className="text-xs font-medium text-gray-700">{awayTeam}</span>
+                    <span className="text-xs font-medium text-gray-200">{awayTeam}</span>
                   </div>
                 </div>
                 
@@ -1509,7 +1540,7 @@ function MatchDetailsContent() {
                         ...prev,
                         batting: { ...prev.batting, england: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-start">
@@ -1521,7 +1552,7 @@ function MatchDetailsContent() {
                         ...prev,
                         batting: { ...prev.batting, englandValue: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-center text-sm text-gray-700 font-medium">Batting</div>
@@ -1534,7 +1565,7 @@ function MatchDetailsContent() {
                         ...prev,
                         batting: { ...prev.batting, indiaValue: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-start">
@@ -1546,7 +1577,7 @@ function MatchDetailsContent() {
                         ...prev,
                         batting: { ...prev.batting, india: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                 </div>
@@ -1562,7 +1593,7 @@ function MatchDetailsContent() {
                         ...prev,
                         bowling: { ...prev.bowling, england: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-start">
@@ -1574,7 +1605,7 @@ function MatchDetailsContent() {
                         ...prev,
                         bowling: { ...prev.bowling, englandValue: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-center text-sm text-gray-700 font-medium">Bowling</div>
@@ -1587,7 +1618,7 @@ function MatchDetailsContent() {
                         ...prev,
                         bowling: { ...prev.bowling, indiaValue: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-start">
@@ -1599,7 +1630,7 @@ function MatchDetailsContent() {
                         ...prev,
                         bowling: { ...prev.bowling, india: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                 </div>
@@ -1615,7 +1646,7 @@ function MatchDetailsContent() {
                         ...prev,
                         totalFactor: { ...prev.totalFactor, england: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-start">
@@ -1627,7 +1658,7 @@ function MatchDetailsContent() {
                         ...prev,
                         totalFactor: { ...prev.totalFactor, englandValue: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-center text-sm text-gray-700 font-medium">Total Factor</div>
@@ -1640,7 +1671,7 @@ function MatchDetailsContent() {
                         ...prev,
                         totalFactor: { ...prev.totalFactor, indiaValue: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center"
+                      className="w-14 px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div className="flex items-center justify-start">
@@ -1652,7 +1683,7 @@ function MatchDetailsContent() {
                         ...prev,
                         totalFactor: { ...prev.totalFactor, india: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                 </div>
@@ -1668,25 +1699,23 @@ function MatchDetailsContent() {
                         ...prev,
                         conditions: { ...prev.conditions, england: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                      className="w-18 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                   </div>
                   <div></div>
                   <div className="flex items-center justify-center text-sm text-gray-700 font-medium">Conditions</div>
                   <div></div>
                   <div className="flex items-center justify-end gap-1">
-                    <select
+                    <input
+                      type="number"
+                      step="0.01"
                       value={inningsData.conditions.value}
                       onChange={(e) => setInningsData(prev => ({
                         ...prev,
                         conditions: { ...prev.conditions, value: parseFloat(e.target.value) || 0 }
                       }))}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                    >
-                      <option value="0.99">0.99</option>
-                      <option value="0.98">0.98</option>
-                      <option value="1.00">1.00</option>
-                    </select>
+                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
                     <button
                       onClick={() => setInningsData(prev => ({
                         ...prev,
@@ -1717,53 +1746,55 @@ function MatchDetailsContent() {
             </div>
 
             {/* Match Market */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-700">MATCH MARKET</h3>
-                <div className="flex items-center gap-2">
-                  <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50">
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
-                  <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50">
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
-                </div>
+            <div className="flex flex-col items-end relative">
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-base font-semibold text-gray-800">MATCH MARKET</h3>
+                <button 
+                  onClick={() => setShowCompetitorPrices(!showCompetitorPrices)}
+                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                  title="View competitor prices"
+                >
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
               </div>
               <div className="space-y-3">
                 <div className="flex items-start gap-4">
                   <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-base text-gray-700 font-semibold w-24">{homeTeam}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-base text-gray-800 font-semibold w-28">{homeTeam}</span>
                       <button
                         onClick={() => {}}
-                        className="bg-green-100 text-green-800 px-3 py-1.5 rounded text-sm font-medium text-center hover:bg-green-200 w-16"
+                        className="bg-green-100 text-green-800 px-4 py-2 rounded text-sm font-semibold text-center hover:bg-green-200 w-20"
                       >
                         {matchMarket.england.green.toFixed(2)}
                       </button>
                       <button
                         onClick={() => {}}
-                        className="bg-red-100 text-red-800 px-3 py-1.5 rounded text-sm font-medium text-center hover:bg-red-200 w-16"
+                        className="bg-red-100 text-red-800 px-4 py-2 rounded text-sm font-semibold text-center hover:bg-red-200 w-20"
                       >
                         {matchMarket.england.red.toFixed(2)}
                       </button>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-base text-gray-700 font-semibold w-24">{awayTeam}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-base text-gray-800 font-semibold w-28">{awayTeam}</span>
                       <button
                         onClick={() => {}}
-                        className="bg-green-100 text-green-800 px-3 py-1.5 rounded text-sm font-medium text-center hover:bg-green-200 w-16"
+                        className="bg-green-100 text-green-800 px-4 py-2 rounded text-sm font-semibold text-center hover:bg-green-200 w-20"
                       >
                         {matchMarket.india.green.toFixed(2)}
                       </button>
                       <button
                         onClick={() => {}}
-                        className="bg-red-100 text-red-800 px-3 py-1.5 rounded text-sm font-medium text-center hover:bg-red-200 w-16"
+                        className="bg-red-100 text-red-800 px-4 py-2 rounded text-sm font-semibold text-center hover:bg-red-200 w-20"
                       >
                         {matchMarket.india.red.toFixed(2)}
                       </button>
@@ -1849,98 +1880,24 @@ function MatchDetailsContent() {
                       </div>
                     </div>
                   </div>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden max-w-xs">
-                    <table className="w-full text-xs">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-1.5 py-1 text-left font-medium text-gray-700 text-xs"></th>
-                          <th className="px-1.5 py-1 text-left font-medium text-gray-700 text-xs">365</th>
-                          <th className="px-1.5 py-1 text-left font-medium text-gray-700 text-xs">Indibet</th>
-                          <th className="px-1.5 py-1 text-left font-medium text-gray-700 text-xs">Exchange</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white">
-                        <tr>
-                          <td className="px-1.5 py-1 text-gray-700 text-xs">{homeTeam}</td>
-                          <td className="px-1.5 py-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={matchMarket.england.bet365}
-                              onChange={(e) => setMatchMarket(prev => ({
-                                ...prev,
-                                england: { ...prev.england, bet365: parseFloat(e.target.value) || 0 }
-                              }))}
-                              className="w-full px-1 py-0.5 border border-gray-300 rounded text-xs text-center"
-                            />
-                          </td>
-                          <td className="px-1.5 py-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={matchMarket.england.indibet}
-                              onChange={(e) => setMatchMarket(prev => ({
-                                ...prev,
-                                england: { ...prev.england, indibet: parseFloat(e.target.value) || 0 }
-                              }))}
-                              className="w-full px-1 py-0.5 border border-gray-300 rounded text-xs text-center"
-                            />
-                          </td>
-                          <td className="px-1.5 py-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={matchMarket.england.exchange}
-                              onChange={(e) => setMatchMarket(prev => ({
-                                ...prev,
-                                england: { ...prev.england, exchange: parseFloat(e.target.value) || 0 }
-                              }))}
-                              className="w-full px-1 py-0.5 border border-gray-300 rounded text-xs text-center"
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-1.5 py-1 text-gray-700 text-xs">{awayTeam}</td>
-                          <td className="px-1.5 py-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={matchMarket.india.bet365}
-                              onChange={(e) => setMatchMarket(prev => ({
-                                ...prev,
-                                india: { ...prev.india, bet365: parseFloat(e.target.value) || 0 }
-                              }))}
-                              className="w-full px-1 py-0.5 border border-gray-300 rounded text-xs text-center"
-                            />
-                          </td>
-                          <td className="px-1.5 py-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={matchMarket.india.indibet}
-                              onChange={(e) => setMatchMarket(prev => ({
-                                ...prev,
-                                india: { ...prev.india, indibet: parseFloat(e.target.value) || 0 }
-                              }))}
-                              className="w-full px-1 py-0.5 border border-gray-300 rounded text-xs text-center"
-                            />
-                          </td>
-                          <td className="px-1.5 py-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={matchMarket.india.exchange}
-                              onChange={(e) => setMatchMarket(prev => ({
-                                ...prev,
-                                india: { ...prev.india, exchange: parseFloat(e.target.value) || 0 }
-                              }))}
-                              className="w-full px-1 py-0.5 border border-gray-300 rounded text-xs text-center"
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                </div>
+                {/* Proceed Button */}
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => {
+                      // Navigate to next stage
+                      const params = new URLSearchParams();
+                      params.set('matchId', matchId);
+                      params.set('homeTeam', homeTeam);
+                      params.set('awayTeam', awayTeam);
+                      params.set('matchInfo', matchInfo);
+                      router.push(`/player-stats?${params.toString()}`);
+                    }}
+                    disabled={!areAllPlayersSelected()}
+                    className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-all shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:bg-gray-400"
+                  >
+                    Proceed
+                  </button>
                 </div>
               </div>
             </div>
@@ -1948,16 +1905,125 @@ function MatchDetailsContent() {
         </div>
       </div>
 
+      {/* Competitor Prices Popup */}
+      {showCompetitorPrices && (
+        <div className="absolute top-12 right-0 bg-white rounded-lg shadow-2xl border border-gray-200 p-4 z-50 min-w-[320px]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-800">Competitor Prices</h3>
+            <button
+              onClick={() => setShowCompetitorPrices(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th className="px-2 py-1.5 text-left font-semibold text-white text-xs"></th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-white text-xs">365</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-white text-xs">Indibet</th>
+                  <th className="px-2 py-1.5 text-left font-semibold text-white text-xs">Exchange</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                <tr>
+                  <td className="px-2 py-1.5 text-gray-700 text-xs font-medium">{homeTeam}</td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={matchMarket.england.bet365}
+                      onChange={(e) => setMatchMarket(prev => ({
+                        ...prev,
+                        england: { ...prev.england, bet365: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={matchMarket.england.indibet}
+                      onChange={(e) => setMatchMarket(prev => ({
+                        ...prev,
+                        england: { ...prev.england, indibet: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={matchMarket.england.exchange}
+                      onChange={(e) => setMatchMarket(prev => ({
+                        ...prev,
+                        england: { ...prev.england, exchange: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-2 py-1.5 text-gray-700 text-xs font-medium">{awayTeam}</td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={matchMarket.india.bet365}
+                      onChange={(e) => setMatchMarket(prev => ({
+                        ...prev,
+                        india: { ...prev.india, bet365: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={matchMarket.india.indibet}
+                      onChange={(e) => setMatchMarket(prev => ({
+                        ...prev,
+                        india: { ...prev.india, indibet: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={matchMarket.india.exchange}
+                      onChange={(e) => setMatchMarket(prev => ({
+                        ...prev,
+                        india: { ...prev.india, exchange: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="w-full mx-auto px-6 py-6">
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <div className="bg-blue-100 border-l-4 border-blue-600 px-4 py-2 mb-6 rounded shadow-sm">
+            <div className="bg-gray-700 border-l-4 border-gray-800 px-4 py-2 mb-6 rounded shadow-sm">
               <div className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <h2 className="text-xl font-semibold text-blue-900">BATTERS</h2>
+                <h2 className="text-base font-semibold text-gray-200">BATTERS</h2>
               </div>
             </div>
 
@@ -1969,12 +2035,12 @@ function MatchDetailsContent() {
 
           {/* Bowlers Section */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="bg-blue-100 border-l-4 border-blue-600 px-4 py-2 mb-6 rounded shadow-sm">
+            <div className="bg-gray-700 border-l-4 border-gray-800 px-4 py-2 mb-6 rounded shadow-sm">
               <div className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <h2 className="text-xl font-semibold text-blue-900">BOWLERS</h2>
+                <h2 className="text-base font-semibold text-gray-200">BOWLERS</h2>
               </div>
             </div>
 

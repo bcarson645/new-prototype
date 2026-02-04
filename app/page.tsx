@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Match {
@@ -80,7 +80,7 @@ const sampleMatches: Match[] = [
     series: 'T20 World Cup 2022',
     competitionType: 'International',
     format: 'T20I',
-    liveStatus: 'CoverageConfirmed',
+    liveStatus: 'Live',
     preMatchStatus: 'CoverageConfirmed',
   },
   {
@@ -93,7 +93,7 @@ const sampleMatches: Match[] = [
     series: 'T20 Blast (T20)',
     competitionType: 'Domestic',
     format: 'T20',
-    liveStatus: 'CoverageConfirmed',
+    liveStatus: 'Live',
     preMatchStatus: 'CoverageConfirmed',
   },
   {
@@ -106,7 +106,7 @@ const sampleMatches: Match[] = [
     series: 'ICC Champions Trophy 2025',
     competitionType: 'International',
     format: 'ODI',
-    liveStatus: 'CoverageConfirmed',
+    liveStatus: 'Live',
     preMatchStatus: 'CoverageConfirmed',
   },
   {
@@ -157,6 +157,22 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const matchesPerPage = 10;
+  const [traderNames, setTraderNames] = useState<Record<string, string>>({});
+  const [prepStatus, setPrepStatus] = useState<Record<string, number>>({});
+  
+  // Get published matches from localStorage
+  const [publishedMatches, setPublishedMatches] = useState<Set<string>>(new Set());
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('publishedMatches');
+      setPublishedMatches(new Set(stored ? JSON.parse(stored) : []));
+    }
+  }, []);
+  
+  const isMatchPublished = (matchId: string) => {
+    return publishedMatches.has(matchId);
+  };
 
   const toggleMatchSelection = (matchId: string) => {
     const newSelected = new Set(selectedMatches);
@@ -172,7 +188,45 @@ export default function Home() {
     return selectedMatches.has(matchId);
   };
 
-  const filteredMatches = sampleMatches.filter((match) => {
+  const getPrepStatusColor = (score: number) => {
+    switch (score) {
+      case 5:
+        return 'bg-green-600 text-white border-green-700';
+      case 4:
+        return 'bg-green-400 text-white border-green-500';
+      case 3:
+        return 'bg-yellow-400 text-gray-900 border-yellow-500';
+      case 2:
+        return 'bg-orange-400 text-white border-orange-500';
+      case 1:
+        return 'bg-red-500 text-white border-red-600';
+      default:
+        return 'bg-gray-200 text-gray-700 border-gray-300';
+    }
+  };
+
+  const handleTraderChange = (matchId: string, value: string) => {
+    setTraderNames(prev => ({
+      ...prev,
+      [matchId]: value
+    }));
+  };
+
+  const handlePrepStatusChange = (matchId: string, value: number) => {
+    setPrepStatus(prev => ({
+      ...prev,
+      [matchId]: value
+    }));
+  };
+
+  // Separate matches into pre-match and live
+  const preMatchMatches = sampleMatches.filter((match) => match.liveStatus !== 'Live');
+  const liveMatches = sampleMatches.filter((match) => match.liveStatus === 'Live');
+
+  // Get current match list based on active tab
+  const currentMatchList = activeTab === 'prematch' ? preMatchMatches : liveMatches;
+
+  const filteredMatches = currentMatchList.filter((match) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -193,7 +247,7 @@ export default function Home() {
     if (selectedMatches.size === 0) return;
     // Get the first selected match by matchId
     const selectedMatchId = Array.from(selectedMatches)[0];
-    const selectedMatch = sampleMatches.find((m) => m.matchId === selectedMatchId);
+    const selectedMatch = currentMatchList.find((m) => m.matchId === selectedMatchId);
     if (selectedMatch) {
       // Navigate to squad setup page with match data
       router.push(`/squad-setup?matchId=${selectedMatch.matchId}&homeTeam=${encodeURIComponent(selectedMatch.homeTeam)}&awayTeam=${encodeURIComponent(selectedMatch.awayTeam)}&matchInfo=${encodeURIComponent(selectedMatch.matchInfo)}`);
@@ -216,33 +270,11 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab('prematch')}
-                  className={`px-4 py-2 rounded font-medium ${
-                    activeTab === 'prematch'
-                      ? 'bg-blue-700 text-white'
-                      : 'text-blue-200 hover:bg-blue-800'
-                  }`}
-                >
-                  PREMATCH
-                </button>
-                <button
-                  onClick={() => setActiveTab('live')}
-                  className={`px-4 py-2 rounded font-medium ${
-                    activeTab === 'live'
-                      ? 'bg-blue-700 text-white'
-                      : 'text-blue-200 hover:bg-blue-800'
-                  }`}
-                >
-                  LIVE
-                </button>
-              </div>
               <div className="flex items-center gap-2 cursor-pointer hover:bg-blue-800 px-3 py-1 rounded">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>d.pavlica</span>
+                <span>b.carson</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -260,6 +292,42 @@ export default function Home() {
             <span className="mx-2">/</span>
             <span className="hover:text-blue-600 cursor-pointer">Match List</span>
           </nav>
+        </div>
+      </div>
+
+      {/* Pre Match / Live Tabs Sub-Banner */}
+      <div className="bg-white border-b border-gray-300">
+        <div className="w-full mx-auto px-6">
+          <div className="flex gap-1 border-b border-gray-200">
+            <button
+              onClick={() => {
+                setActiveTab('prematch');
+                setCurrentPage(1);
+                setSelectedMatches(new Set());
+              }}
+              className={`px-6 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'prematch'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Pre Match
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('live');
+                setCurrentPage(1);
+                setSelectedMatches(new Set());
+              }}
+              className={`px-6 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'live'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Live
+            </button>
+          </div>
         </div>
       </div>
 
@@ -398,12 +466,20 @@ export default function Home() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Format
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Live Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    PreMatch Status
-                  </th>
+                  {activeTab === 'live' ? (
+                    <>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Trader
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        Prep Status
+                      </th>
+                    </>
+                  ) : (
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      PreMatch Status
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -429,7 +505,14 @@ export default function Home() {
                       {match.matchId}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                      {match.matchInfo}
+                      <div className="flex items-center gap-2">
+                        <span>{match.matchInfo}</span>
+                        {isMatchPublished(match.matchId) && (
+                          <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-semibold rounded">
+                            Published
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {match.homeTeam}
@@ -451,22 +534,57 @@ export default function Home() {
                         <option>{match.format}</option>
                       </select>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm">
-                      <select
-                        className="border border-gray-300 rounded px-2 py-1 text-sm"
-                        defaultValue={match.liveStatus}
-                      >
-                        <option>{match.liveStatus}</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm">
-                      <select
-                        className="border border-gray-300 rounded px-2 py-1 text-sm"
-                        defaultValue={match.preMatchStatus}
-                      >
-                        <option>{match.preMatchStatus}</option>
-                      </select>
-                    </td>
+                    {activeTab === 'live' ? (
+                      <>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <input
+                            type="text"
+                            value={traderNames[match.matchId] && traderNames[match.matchId].trim() ? traderNames[match.matchId] : 'unassigned'}
+                            onChange={(e) => {
+                              const value = e.target.value === 'unassigned' ? '' : e.target.value;
+                              handleTraderChange(match.matchId, value);
+                            }}
+                            onFocus={(e) => {
+                              if (e.target.value === 'unassigned') {
+                                e.target.select();
+                              }
+                            }}
+                            className={`px-2 py-1 rounded text-sm border w-full ${
+                              traderNames[match.matchId] && traderNames[match.matchId].trim()
+                                ? 'bg-green-100 border-green-400 text-green-800'
+                                : 'bg-red-100 border-red-400 text-red-800'
+                            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <select
+                            value={prepStatus[match.matchId] || ''}
+                            onChange={(e) => handlePrepStatusChange(match.matchId, parseInt(e.target.value))}
+                            className={`px-2 py-1 rounded text-sm font-semibold border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              prepStatus[match.matchId]
+                                ? getPrepStatusColor(prepStatus[match.matchId])
+                                : 'bg-gray-200 border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            <option value="" className="bg-gray-200 text-gray-700">Select</option>
+                            <option value="1" className="bg-red-500 text-white">1</option>
+                            <option value="2" className="bg-orange-400 text-white">2</option>
+                            <option value="3" className="bg-yellow-400 text-gray-900">3</option>
+                            <option value="4" className="bg-green-400 text-white">4</option>
+                            <option value="5" className="bg-green-600 text-white">5</option>
+                          </select>
+                        </td>
+                      </>
+                    ) : (
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <select
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                          defaultValue={match.preMatchStatus}
+                        >
+                          <option>{match.preMatchStatus}</option>
+                        </select>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
